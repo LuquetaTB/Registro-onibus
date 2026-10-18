@@ -1,6 +1,6 @@
 # Problema 2: A que horas passa o próximo ônibus?
 
-Sistema de monitoramento e registro de chegadas de ônibus para o coletivo de estudantes da **Universidade do Distrito Federal Professor Jorge Amaury Maia Nunes (UnDF)**[cite: 1]. Processa logs de horários em paradas de ônibus para responder a consultas de pontualidade e tempos de espera.
+Sistema de monitoramento e registro de chegadas de ônibus para o coletivo de estudantes da **Universidade do Distrito Federal Professor Jorge Amaury Maia Nunes (UnDF)**. Processa logs de horários em paradas de ônibus para responder a consultas de pontualidade e tempos de espera.
 
 ## Integrantes
 
