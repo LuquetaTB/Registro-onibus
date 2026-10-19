@@ -48,7 +48,27 @@ int registrar_chegada(No **raiz, const char *data, const char *horario, const ch
         return 0; // DUPLICADO (já existe na árvore)
     }
 }
+
+// R2: buscar_chegada(data, horario, linha)
+// Retorna 1 para "ACHOU" e 0 para "NAO"
+int buscar_chegada(No *raiz, const char *data, const char *horario, const char *linha) {
+    if (raiz == NULL) {
+        return 0; // NAO encontrou
+    }
+
+    int cmp = comparar(data, horario, linha, raiz->data, raiz->horario, raiz->linha);
+
+    if (cmp == 0) {
+        return 1; // ACHOU
+    } else if (cmp < 0) {
+        return buscar_chegada(raiz->esq, data, horario, linha);
+    } else {
+        return buscar_chegada(raiz->dir, data, horario, linha);
+    }
+}
+
 int main(){
 	setlocale(LC_ALL, "Portuguese");
 	printf("Função R1 (registrar_chegada) feita! - Joaquim");
+	printf("Função R2 (buscar_chegada) feita! - Joaquim");
 }
