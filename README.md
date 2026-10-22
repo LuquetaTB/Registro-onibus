@@ -63,6 +63,6 @@ O programa lê um arquivo de texto de entrada contendo uma instrução por linha
 O repositório inclui o arquivo `executar.txt` na raiz, configurado para automação dos testes no Windows:
 
 ```text
-gcc -O2 main.c -o sistema.exe
+gcc -O2 -std=c99 problema2_fase1.c -o sistema.exe
 sistema.exe {arquivo}
 sistema.exe {arquivo}
