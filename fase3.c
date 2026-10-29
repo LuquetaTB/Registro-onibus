@@ -13,6 +13,26 @@ typedef struct No {
     struct No *dir;
 } No;
 
+int maior(int a, int b){
+    return (a > b)? a:b;
+}
+
+int alturaNo(No *no){
+    if(no == NULL){
+        return -1;
+    }else{
+        return no->altura;
+    }
+}
+
+int fatorBalanceamento(No *no){
+    if(no){
+        return (alturaNo(no->esq) - alturaNo(no->dir));
+    }else{
+        return 0;
+    }
+}
+
 int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
     if (*raiz == NULL) {
         No *aux = (No *)malloc(sizeof(No));
