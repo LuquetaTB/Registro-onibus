@@ -157,6 +157,40 @@ int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
 
     return 1;
 }
+int buscar_chegada(No *raiz, const char *data,
+                   const char *horario, const char *linha) {
+
+    // Árvore vazia: chegada não encontrada
+    if (raiz == NULL) {
+        return 0;
+    }
+
+    // Compara a data
+    int resultado = strcmp(data, raiz->data);
+
+    // Se as datas forem iguais, compara o horário
+    if (resultado == 0) {
+        resultado = strcmp(horario, raiz->horario);
+    }
+
+    // Se os horários também forem iguais, compara a linha
+    if (resultado == 0) {
+        resultado = strcmp(linha, raiz->linha);
+    }
+
+    // Chegada encontrada
+    if (resultado == 0) {
+        return 1;
+    }
+
+    // Procura na esquerda
+    if (resultado < 0) {
+        return buscar_chegada(raiz->esq, data, horario, linha);
+    }
+
+    // Procura na direita
+    return buscar_chegada(raiz->dir, data, horario, linha);
+}
 
 int main(){
     No *raiz = NULL;
