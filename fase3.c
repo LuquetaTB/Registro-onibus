@@ -95,9 +95,24 @@ No* balanceamento(No *raiz){
 
     return raiz;
 }
+int comparar_chegadas(const char *data1, const char *horario1, const char *linha1,
+                      const char *data2, const char *horario2, const char *linha2) {
+
+    int resultado = strcmp(data1, data2);
+
+    if (resultado == 0) {
+        resultado = strcmp(horario1, horario2);
+    }
+
+    if (resultado == 0) {
+        resultado = strcmp(linha1, linha2);
+    }
+
+    return resultado;
+}
 
 int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
-    // Árvore vazia: cria um novo nó
+    //Árvore vazia: cria um novo nó
     if (*raiz == NULL) {
         No *novo = (No *) malloc(sizeof(No));
 
@@ -119,23 +134,14 @@ int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
         return 1;
     }
 
-    // Compara a nova chegada com o nó atual
-    int resultado = strcmp(data, (*raiz)->data);
-
-    if (resultado == 0) {
-        resultado = strcmp(horario, (*raiz)->horario);
-    }
-
-    if (resultado == 0) {
-        resultado = strcmp(linha, (*raiz)->linha);
-    }
-
-    // Chegada duplicada
+    //Compara a nova chegada com o nó atual
+    int resultado = comparar_chegadas(data, horario, linha, (*raiz)->data, (*raiz)->horario, (*raiz)->linha);
+    //Chegada duplicada
     if (resultado == 0) {
         return 0;
     }
 
-    // Insere na esquerda
+    //Insere na esquerda
     if (resultado < 0) {
         int status = registrar_chegada(&(*raiz)->esq, data, horario, linha);
 
@@ -143,7 +149,7 @@ int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
             return status;
         }
     }
-    // Insere na direita
+    //Insere na direita
     else {
         int status = registrar_chegada(&(*raiz)->dir, data, horario, linha);
 
@@ -152,7 +158,7 @@ int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
         }
     }
 
-    // Atualiza e balanceia a árvore
+    //Atualiza e balanceia a árvore
     *raiz = balanceamento(*raiz);
 
     return 1;
@@ -160,37 +166,57 @@ int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
 int buscar_chegada(No *raiz, const char *data,
                    const char *horario, const char *linha) {
 
-    // Árvore vazia: chegada não encontrada
+    //Árvore vazia: chegada não encontrada
     if (raiz == NULL) {
         return 0;
     }
 
-    // Compara a data
-    int resultado = strcmp(data, raiz->data);
-
-    // Se as datas forem iguais, compara o horário
-    if (resultado == 0) {
-        resultado = strcmp(horario, raiz->horario);
-    }
-
-    // Se os horários também forem iguais, compara a linha
-    if (resultado == 0) {
-        resultado = strcmp(linha, raiz->linha);
-    }
-
-    // Chegada encontrada
+    //Compara a data
+    int resultado = comparar_chegadas(data, horario, linha, raiz->data, raiz->horario, raiz->linha);
+    //Chegada encontrada
     if (resultado == 0) {
         return 1;
     }
 
-    // Procura na esquerda
+    //Procura na esquerda
     if (resultado < 0) {
         return buscar_chegada(raiz->esq, data, horario, linha);
     }
 
-    // Procura na direita
+    //Procura na direita
     return buscar_chegada(raiz->dir, data, horario, linha);
 }
+No* proximo(No *raiz, const char *data, const char *horario) {
+
+    //arvore vazia: não existe chegada
+    if (raiz == NULL) {
+        return NULL;
+    }
+
+    //Compara a data e o horario
+    int resultado = strcmp(data, raiz->data);
+
+    if (resultado == 0) {
+        resultado = strcmp(horario, raiz->horario);
+    }
+
+    //A chegada atual é anterior a procurada
+    if (resultado > 0) {
+        return proximo(raiz->dir, data, horario);
+    }
+
+    //A chegada atual é igual ou posterior a procurada
+    else {
+        No *candidato = proximo(raiz->esq, data, horario);
+
+        if (candidato != NULL) {
+            return candidato;
+        }
+
+        return raiz;
+    }
+}
+
 
 int main(){
     No *raiz = NULL;
