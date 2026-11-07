@@ -216,7 +216,40 @@ No* proximo(No *raiz, const char *data, const char *horario) {
         return raiz;
     }
 }
+No* proximo_da_linha(No *raiz, const char *data, const char *horario, const char *linha) {
 
+    if (raiz == NULL) {
+        return NULL;
+    }
+
+    // Compara data e horario
+    int resultado = strcmp(data, raiz->data);
+
+    if (resultado == 0) {
+        resultado = strcmp(horario, raiz->horario);
+    }
+
+    // Nó atual é anterior  consulta
+    if (resultado > 0) {
+        return proximo_da_linha(raiz->dir, data, horario, linha);
+    }
+
+    // Nó atual é igual ou posterior a consulta
+    No *esquerda = proximo_da_linha(raiz->esq, data, horario, linha);
+
+    //se encontrou uma chegada válida a esquerda, ela é a melhor
+    if (esquerda != NULL) {
+        return esquerda;
+    }
+
+    //Verifica se o próprio nó corresponde à linha
+    if (strcmp(linha, raiz->linha) == 0) {
+        return raiz;
+    }
+
+    //Procura na direita se o nó atual não corresponde
+    return proximo_da_linha(raiz->dir, data, horario, linha);
+}
 
 int main(){
     No *raiz = NULL;
