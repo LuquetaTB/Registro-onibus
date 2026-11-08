@@ -278,6 +278,9 @@ void entre(No *raiz, const char *data1, const char *horario1, const char *data2,
         entre(raiz->dir, data1, horario1, data2, horario2);
     }
 }
+int altura(No *raiz){
+    return alturaNo(raiz) + 1;
+}
 int main(){
     No *raiz = NULL;
 
