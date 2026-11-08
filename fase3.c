@@ -278,6 +278,66 @@ void entre(No *raiz, const char *data1, const char *horario1, const char *data2,
         entre(raiz->dir, data1, horario1, data2, horario2);
     }
 }
+No* remover_chegada(No *raiz, const char *data,
+                    const char *horario, const char *linha) {
+
+    if (raiz == NULL) {
+        return NULL;
+    }
+
+    int resultado = comparar_chegadas(
+        data, horario, linha,
+        raiz->data, raiz->horario, raiz->linha
+    );
+
+    if (resultado < 0) {
+        raiz->esq = remover_chegada(
+            raiz->esq, data, horario, linha
+        );
+    }
+    else if (resultado > 0) {
+        raiz->dir = remover_chegada(
+            raiz->dir, data, horario, linha
+        );
+    }
+    else {
+        //Caso 1: folha ou apenas um filho
+        if (raiz->esq == NULL || raiz->dir == NULL) {
+            No *aux = raiz;
+
+            if (raiz->esq != NULL) {
+                raiz = raiz->esq;
+            } else {
+                raiz = raiz->dir;
+            }
+
+            free(aux);
+        }
+
+        //Caso 2: dois filhos
+        else {
+            No *aux = raiz->esq;
+
+            //Encontrar o antecessor
+            while (aux->dir != NULL) {
+                aux = aux->dir;
+            }
+
+            //Copiar os dados do antecessor
+            strcpy(raiz->data, aux->data);
+            strcpy(raiz->horario, aux->horario);
+            strcpy(raiz->linha, aux->linha);
+
+            //Remover o antecessor original
+            raiz->esq = remover_chegada(
+                raiz->esq, aux->data, aux->horario, aux->linha
+            );
+        }
+    }
+
+    return balanceamento(raiz);
+}
+
 int altura(No *raiz){
     return alturaNo(raiz) + 1;
 }
