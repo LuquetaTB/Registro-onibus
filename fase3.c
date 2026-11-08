@@ -250,7 +250,34 @@ No* proximo_da_linha(No *raiz, const char *data, const char *horario, const char
     //Procura na direita se o nó atual não corresponde
     return proximo_da_linha(raiz->dir, data, horario, linha);
 }
+void entre(No *raiz, const char *data1, const char *horario1, const char *data2, const char *horario2){
+    if(raiz == NULL){
+        return;
+    }
 
+    int inicio = strcmp(raiz->data, data1);
+    if(inicio==0){
+        inicio = strcmp(raiz->horario, horario1);
+    }
+
+    int fim = strcmp(raiz->data, data2);
+    if(fim ==0){
+        fim = strcmp(raiz->horario, horario2);
+    }
+
+    if(inicio < 0){
+        entre(raiz->dir, data1, horario1, data2, horario2);
+    }
+    else if(fim > 0){
+        entre(raiz->esq, data1, horario1, data2, horario2);
+    }else{
+        entre(raiz->esq, data1, horario1, data2, horario2);
+        
+        printf("%s %s %s\n", raiz->data, raiz->horario, raiz->linha);
+
+        entre(raiz->dir, data1, horario1, data2, horario2);
+    }
+}
 int main(){
     No *raiz = NULL;
 
