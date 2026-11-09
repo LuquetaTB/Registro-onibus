@@ -13,7 +13,7 @@ Sistema de monitoramento e registro de chegadas de ônibus para o coletivo de es
 
 ## O Sistema
 
-O sistema substitui estimativas informais por registros auditáveis baseados no histórico real de chegadas[cite: 1], permitindo responder a consultas como:
+O sistema substitui estimativas informais por registros auditáveis baseados no histórico real de chegadas, permitindo responder a consultas como:
 - O ônibus de determinada linha já passou após um horário específico?
 - Qual foi o tempo de espera real para quem aguardava no ponto?
 - A linha apresenta atrasos recorrentes em dias específicos da semana?
@@ -26,7 +26,7 @@ Os dados gerados fornecem embasamento estatístico para solicitações junto à 
 
 Conforme os requisitos do projeto, o **núcleo** foi implementado inteiramente do zero, sem o uso de estruturas de dados ou bibliotecas prontas de ordenação e busca.
 
-- **Linguagem:** C (GCC / MinGW)
+- **Linguagem:** C (GCC / MinGW - Padrão C99)
 - **Permitido no núcleo:** Alocação dinâmica (`malloc`/`free`), ponteiros, tipos próprios (`struct`) e vetores simples.
 - **Proibido no núcleo:** Funções prontas de busca ou ordenação (ex: `qsort`, `bsearch`, `std::map`, etc.).
 - **Identificação:** Cada registro de chegada é unicamente mapeado pela chave composta por `(Data, Horário, Linha)`.
@@ -52,17 +52,30 @@ O programa lê um arquivo de texto de entrada contendo uma instrução por linha
 
 ## Fases do Projeto
 
-1. **Fase 1 (ABB):** Implementação inicial utilizando uma Árvore Binária de Busca construída do zero, suportando todas as operações (R1–R8).
+1. **Fase 1 (ABB):** Implementação inicial utilizando uma Árvore Binária de Busca construída do zero em `fase1.c`, suportando todas as operações (R1–R8).
 2. **Fase 2 (Análise):** Bateria de testes de desempenho com arquivos de carga de $1.000$ a $20.000$ registros, medindo tempos de execução e o comportamento da altura da árvore.
-3. **Fase 3 (AVL):** Substituição da estrutura principal por uma Árvore AVL auto-balanceada com rotações, otimizando as consultas e garantindo o limite estrito de altura $h \le 1{,}45 \times \log_2(n+2)$.
+3. **Fase 3 (AVL):** Substituição da estrutura principal por uma Árvore AVL auto-balanceada com rotações em `fase3.c`, otimizando as consultas e garantindo o limite estrito de altura $h \le 1{,}45 \times \log_2(n+2)$.
 
 ---
 
 ## Compilação e Execução
 
-O repositório inclui o arquivo `executar.txt` na raiz, configurado para automação dos testes no Windows:
+Conforme exigido nas diretrizes do projeto, o repositório conta com o arquivo `executar.txt` na raiz, configurado para automação dos testes no Windows:
 
 ```text
-gcc -O2 -std=c99 problema2_fase1.c -o sistema.exe
-sistema.exe {arquivo}
-sistema.exe {arquivo}
+gcc -O2 -std=c99 fase1.c -o sistema_fase1.exe && gcc -O2 -std=c99 fase3.c -o sistema_fase3.exe
+sistema_fase1.exe {arquivo}
+sistema_fase3.exe {arquivo}
+```
+
+### Execução Manual:
+- **Fase 1 (ABB):**
+  ```powershell
+  gcc -O2 -std=c99 fase1.c -o sistema_fase1.exe
+  .\sistema_fase1.exe "caminho\para\arquivo.txt"
+  ```
+- **Fase 3 (AVL):**
+  ```powershell
+  gcc -O2 -std=c99 fase3.c -o sistema_fase3.exe
+  .\sistema_fase3.exe "caminho\para\arquivo.txt"
+  ```
