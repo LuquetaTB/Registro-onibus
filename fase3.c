@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<time.h>
 
 typedef struct No {
     char data[11];
@@ -110,7 +111,26 @@ int comparar_chegadas(const char *data1, const char *horario1, const char *linha
 
     return resultado;
 }
+void calcular_data_offset_semanas(const char *data_base, int semanas_atras, char *data_saida) {
+    int ano = 0, mes = 0, dia = 0;
+    sscanf(data_base, "%d-%d-%d", &ano, &mes, &dia);
 
+    struct tm t;
+    memset(&t, 0, sizeof(struct tm));
+    t.tm_year = ano - 1900;
+    t.tm_mon = mes - 1;
+    t.tm_mday = dia - (7 * semanas_atras);
+    t.tm_hour = 12;
+    t.tm_isdst = -1;
+
+    mktime(&t);
+    sprintf(data_saida, "%04d-%02d-%02d", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
+}
+long horario_para_segundos(const char *horario) {
+    int h = 0, m = 0, s = 0;
+    sscanf(horario, "%d:%d:%d", &h, &m, &s);
+    return (long)h * 3600 + (long)m * 60 + (long)s;
+}
 int registrar_chegada(No **raiz, char data[], char horario[], char linha[]) {
     //Árvore vazia: cria um novo nó
     if (*raiz == NULL) {
@@ -216,26 +236,26 @@ No* proximo(No *raiz, const char *data, const char *horario) {
         return raiz;
     }
 }
-No* proximo_da_linha(No *raiz, const char *data, const char *horario, const char *linha) {
+const No* proximo_da_linha(const No *raiz, const char *data, const char *horario, const char *linha) {
 
     if (raiz == NULL) {
         return NULL;
     }
 
-    // Compara data e horario
+    //Compara data e horario
     int resultado = strcmp(data, raiz->data);
 
     if (resultado == 0) {
         resultado = strcmp(horario, raiz->horario);
     }
 
-    // Nó atual é anterior  consulta
+    //Nó atual é anterior  consulta
     if (resultado > 0) {
         return proximo_da_linha(raiz->dir, data, horario, linha);
     }
 
-    // Nó atual é igual ou posterior a consulta
-    No *esquerda = proximo_da_linha(raiz->esq, data, horario, linha);
+    //Nó atual é igual ou posterior a consulta
+    const No *esquerda = proximo_da_linha(raiz->esq, data, horario, linha);
 
     //se encontrou uma chegada válida a esquerda, ela é a melhor
     if (esquerda != NULL) {
@@ -329,17 +349,39 @@ No* remover_chegada(No *raiz, const char *data,
             strcpy(raiz->linha, aux->linha);
 
             //Remover o antecessor original
-            raiz->esq = remover_chegada(
-                raiz->esq, aux->data, aux->horario, aux->linha
-            );
+            raiz->esq = remover_chegada(raiz->esq, aux->data, aux->horario, aux->linha);
         }
     }
 
     return balanceamento(raiz);
 }
+void executar_espera_semanal(const No *raiz, const char *linha,
+                             const char *data, const char *horario,
+                             int k) {
+    if (k <= 0) return;
 
-int altura(No *raiz){
-    return alturaNo(raiz) + 1;
+    long seg_referencia = horario_para_segundos(horario);
+
+    for (int sem = k - 1; sem >= 0; sem--) {
+        char data_semana[12];
+
+        calcular_data_offset_semanas(data, sem, data_semana);
+
+        const No *achou = proximo_da_linha(
+            (No *)raiz, data_semana, horario, linha
+        );
+
+        if (achou != NULL && strcmp(achou->data, data_semana) == 0) {
+            long seg_chegada = horario_para_segundos(achou->horario);
+            long espera = seg_chegada - seg_referencia;
+
+            if (espera < 0) espera = 0;
+
+            printf("%s %ld\n", data_semana, espera);
+        } else {
+            printf("%s NAOPASSOU\n", data_semana);
+        }
+    }
 }
 int main(){
     No *raiz = NULL;
