@@ -72,10 +72,11 @@ sistema_fase3.exe {arquivo}
 - **Fase 1 (ABB):**
   ```powershell
   gcc -O2 -std=c99 fase1.c -o sistema_fase1.exe
-  .\sistema_fase1.exe "caminho\para\arquivo.txt"
+  .\sistema_fase1.exe "caminho\para\arquivo.txt" (sem as aspas)
   ```
 - **Fase 3 (AVL):**
   ```powershell
   gcc -O2 -std=c99 fase3.c -o sistema_fase3.exe
-  .\sistema_fase3.exe "caminho\para\arquivo.txt"
+  .\sistema_fase3.exe "caminho\para\arquivo.txt" (sem as aspas)
   ```
+  Caso seu arquivo.txt estiver dentro da pasta do projeto, apenas o nome do arquivo e sua extensão é suficiente.
