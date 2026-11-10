@@ -368,7 +368,7 @@ void executar_espera_semanal(const No *raiz, const char *linha,
         calcular_data_offset_semanas(data, sem, data_semana);
 
         const No *achou = proximo_da_linha(
-            (No *)raiz, data_semana, horario, linha
+            raiz, data_semana, horario, linha
         );
 
         if (achou != NULL && strcmp(achou->data, data_semana) == 0) {
@@ -383,8 +383,249 @@ void executar_espera_semanal(const No *raiz, const char *linha,
         }
     }
 }
-int main(){
+typedef struct {
+    char **linhas;
+    size_t total;
+    size_t capacidade;
+    char *conteudo_bruto;
+} ListaLinhas;
+
+// Carrega o arquivo inteiro na memoria antes da execucao
+int carregar_arquivo_em_memoria(const char *caminho, ListaLinhas *lista) {
+    FILE *f = fopen(caminho, "rb");
+    if (!f) return 0;
+
+    fseek(f, 0, SEEK_END);
+    long tam = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    lista->conteudo_bruto = (char *)malloc((size_t)tam + 2);
+    if (!lista->conteudo_bruto) {
+        fclose(f);
+        return 0;
+    }
+
+    size_t lidos = fread(lista->conteudo_bruto, 1, (size_t)tam, f);
+    lista->conteudo_bruto[lidos] = '\0';
+    fclose(f);
+
+    lista->capacidade = 1024;
+    lista->total = 0;
+    lista->linhas = (char **)malloc(lista->capacidade * sizeof(char *));
+
+    char *p = lista->conteudo_bruto;
+    while (*p != '\0') {
+        while (*p == '\r' || *p == '\n') p++;
+        if (*p == '\0') break;
+
+        char *inicio_linha = p;
+        while (*p != '\0' && *p != '\r' && *p != '\n') p++;
+        if (*p != '\0') {
+            *p = '\0';
+            p++;
+        }
+
+        if (lista->total >= lista->capacidade) {
+            lista->capacidade *= 2;
+            lista->linhas = (char **)realloc(lista->linhas, lista->capacidade * sizeof(char *));
+        }
+        lista->linhas[lista->total++] = inicio_linha;
+    }
+    return 1;
+}
+
+// Libera memoria das linhas carregadas
+void liberar_lista_linhas(ListaLinhas *lista) {
+    if (lista->linhas) free(lista->linhas);
+    if (lista->conteudo_bruto) free(lista->conteudo_bruto);
+    lista->linhas = NULL;
+    lista->conteudo_bruto = NULL;
+    lista->total = 0;
+    lista->capacidade = 0;
+}
+void liberar_arvore(No *raiz) {
+    if (raiz == NULL) {
+        return;
+    }
+
+    liberar_arvore(raiz->esq);
+    liberar_arvore(raiz->dir);
+
+    free(raiz);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Uso: %s <arquivo_operacoes>\n", argv[0]);
+        return 1;
+    }
+
+    const char *caminho_arquivo = argv[1];
+
+    ListaLinhas operacoes;
+
+    if (!carregar_arquivo_em_memoria(caminho_arquivo, &operacoes)) {
+        fprintf(stderr, "Erro ao abrir ou ler o arquivo: %s\n",
+                caminho_arquivo);
+        return 1;
+    }
+
     No *raiz = NULL;
+
+    // Inicia medicao de tempo
+    clock_t c_inicio = clock();
+
+    // Loop de despacho de operacoes
+    for (size_t i = 0; i < operacoes.total; i++) {
+        char *ptr = operacoes.linhas[i];
+
+        while (*ptr == ' ' || *ptr == '\t') ptr++;
+
+        if (*ptr == '\0' || *ptr == '#') continue;
+
+        char operacao[32];
+
+        if (sscanf(ptr, "%31s", operacao) != 1) continue;
+
+        // R1: Registro de chegada
+        if (strcmp(operacao, "REG") == 0) {
+            char data[16], hora[16], linha_onibus[16];
+
+            if (sscanf(ptr, "%*s %15s %15s %15s",
+                       data, hora, linha_onibus) == 3) {
+
+                int res = registrar_chegada(
+                    &raiz, data, hora, linha_onibus
+                );
+
+                if (res == 1) {
+                    printf("OK\n");
+                }
+                else if (res == 0) {
+                    printf("DUPLICADO\n");
+                }
+                else {
+                    fprintf(stderr, "Erro de alocacao de memoria\n");
+                }
+            }
+        }
+
+        // R2: Busca de chegada
+        else if (strcmp(operacao, "BUSCA") == 0) {
+            char data[16], hora[16], linha_onibus[16];
+
+            if (sscanf(ptr, "%*s %15s %15s %15s",
+                       data, hora, linha_onibus) == 3) {
+
+                int res = buscar_chegada(
+                    raiz, data, hora, linha_onibus
+                );
+
+                if (res == 1) {
+                    printf("ACHOU\n");
+                } else {
+                    printf("NAO\n");
+                }
+            }
+        }
+
+        // R3: Proxima chegada geral
+        else if (strcmp(operacao, "PROX") == 0) {
+            char data[16], hora[16];
+
+            if (sscanf(ptr, "%*s %15s %15s", data, hora) == 2) {
+
+                const No *res = proximo(raiz, data, hora);
+
+                if (res != NULL) {
+                    printf("%s %s %s\n",
+                           res->data, res->horario, res->linha);
+                } else {
+                    printf("NENHUM\n");
+                }
+            }
+        }
+
+        // R4: Proxima chegada de linha especifica
+        else if (strcmp(operacao, "PROXL") == 0) {
+            char data[16], hora[16], linha_onibus[16];
+
+            if (sscanf(ptr, "%*s %15s %15s %15s",
+                       data, hora, linha_onibus) == 3) {
+
+                const No *res = proximo_da_linha(
+                    raiz, data, hora, linha_onibus
+                );
+
+                if (res != NULL) {
+                    printf("%s %s\n", res->data, res->horario);
+                } else {
+                    printf("NENHUM\n");
+                }
+            }
+        }
+
+        // R5: Chegadas em intervalo inclusivo
+        else if (strcmp(operacao, "ENTRE") == 0) {
+            char d1[16], h1[16], d2[16], h2[16];
+
+            if (sscanf(ptr, "%*s %15s %15s %15s %15s",
+                       d1, h1, d2, h2) == 4) {
+
+                entre(raiz, d1, h1, d2, h2);
+            }
+        }
+
+        // R6: Remocao de chegada
+        else if (strcmp(operacao, "REM") == 0) {
+            char data[16], hora[16], linha_onibus[16];
+
+            if (sscanf(ptr, "%*s %15s %15s %15s",
+                       data, hora, linha_onibus) == 3) {
+
+                if (buscar_chegada(raiz, data, hora, linha_onibus)) {
+                    raiz = remover_chegada(
+                        raiz, data, hora, linha_onibus
+                    );
+
+                    printf("OK\n");
+                } else {
+                    printf("NAO\n");
+                }
+            }
+        }
+
+        // R7: Altura da arvore
+        else if (strcmp(operacao, "ALT") == 0) {
+            printf("%d\n", alturaNo(raiz) + 1);
+        }
+
+        // R8: Espera semanal
+        else if (strcmp(operacao, "SEMANA") == 0) {
+            char linha_onibus[16], data[16], hora[16];
+            int k = 0;
+
+            if (sscanf(ptr, "%*s %15s %15s %15s %d",
+                       linha_onibus, data, hora, &k) == 4) {
+
+                executar_espera_semanal(
+                    raiz, linha_onibus, data, hora, k
+                );
+            }
+        }
+    }
+
+    // Finaliza medicao de tempo
+    clock_t c_fim = clock();
+
+    double tempo_ms = (double)(c_fim - c_inicio)
+                      * 1000.0 / CLOCKS_PER_SEC;
+
+    fprintf(stderr, "TEMPO_MS %.3f\n", tempo_ms);
+
+    // Desaloca memoria
+    liberar_lista_linhas(&operacoes);
+    liberar_arvore(raiz);
 
     return 0;
 }
