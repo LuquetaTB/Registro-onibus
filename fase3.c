@@ -626,6 +626,12 @@ int main(int argc, char *argv[]) {
     // Desaloca memoria
     liberar_lista_linhas(&operacoes);
     liberar_arvore(raiz);
-
+// R9: FUNÇÃO LINHA
+    int repetido;
+    for (int linha = k - 1; linha >= 0; ++)
+		repetido = linha 
+		else if repetido != linha
+			repetido = true
+			print("repetido %d", linha)
     return 0;
 }
